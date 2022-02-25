@@ -63,7 +63,7 @@ public class PdfSchema extends XmpSchema {
     public static final String DEFAULT_XPATH_URI = "http://ns.adobe.com/pdf/1.3/";
     
     /** Keywords. */
-    public static final String KEYWORDS = "pdf:keywords";
+    public static final String KEYWORDS = "pdf:Keywords";
     /** The PDF file version (for example: 1.0, 1.3, and so on). */
     public static final String VERSION = "pdf:PDFVersion";
     /** The Producer. */
@@ -97,5 +97,15 @@ public class PdfSchema extends XmpSchema {
      */
     public void addVersion(String version) {
         setProperty(VERSION, version);
+    }
+
+    @Override
+    public boolean hasExtensionSchema() {
+        return false;
+    }
+
+    @Override
+    public String getExtensionSchema() {
+        return null;
     }
 }

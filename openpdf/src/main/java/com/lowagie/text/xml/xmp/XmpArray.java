@@ -30,7 +30,7 @@
  * the MPL, indicate your decision by deleting the provisions above and
  * replace them with the notice and other provisions required by the LGPL.
  * If you do not delete the provisions above, a recipient may use your version
- * of this file under either the MPL or the GNU LIBRARY GENERAL PUBLIC LICENSE 
+ * of this file under either the MPL or the GNU LIBRARY GENERAL PUBLIC LICENSE
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the MPL as stated above or under the terms of the GNU
@@ -50,47 +50,83 @@
 package com.lowagie.text.xml.xmp;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * StringBuffer to construct an XMP array.
  */
-public class XmpArray extends ArrayList<String> {
+public class XmpArray extends ArrayList<XmpArray.XmpEntry> {
+
+    /**
+     * An array that is unordered.
+     */
+    public static final String UNORDERED = "rdf:Bag";
+
+    /**
+     * An array that is ordered.
+     */
+    public static final String ORDERED = "rdf:Seq";
+
+    /**
+     * An array with alternatives.
+     */
+    public static final String ALTERNATIVE = "rdf:Alt";
 
     private static final long serialVersionUID = 5722854116328732742L;
-    /** An array that is unordered. */
-    public static final String UNORDERED = "rdf:Bag";
-    /** An array that is ordered. */
-    public static final String ORDERED = "rdf:Seq";
-    /** An array with alternatives. */
-    public static final String ALTERNATIVE = "rdf:Alt";
-    
-    /** the type of array. */
+
+    /**
+     * the type of array.
+     */
     protected String type;
-    
+
     /**
      * Creates an XmpArray.
+     *
      * @param type the type of array: UNORDERED, ORDERED or ALTERNATIVE.
      */
     public XmpArray(String type) {
         this.type = type;
     }
-    
+
     /**
      * Returns the String representation of the XmpArray.
+     *
      * @return a String representation
      */
     public String toString() {
         StringBuilder buf = new StringBuilder("<");
         buf.append(type);
         buf.append('>');
-        for (String s : this) {
-            buf.append("<rdf:li>");
-            buf.append(XmpSchema.escape(s));
+        for (XmpEntry entry : this) {
+            buf.append("<rdf:li").append(entry.property).append(">");
+            buf.append(XmpSchema.escape(entry.value));
             buf.append("</rdf:li>");
         }
         buf.append("</");
         buf.append(type);
         buf.append('>');
         return buf.toString();
+    }
+
+    public void add(String value) {
+        add(new XmpEntry(value, ""));
+    }
+
+    public void add(String value, String property){
+        add(new XmpEntry(value, property));
+    }
+
+    public void addAll(List<String> values){
+        values.forEach(this::add);
+    }
+
+    protected static final class XmpEntry {
+        public final String value;
+        public final String property;
+
+        private XmpEntry(String value, String property) {
+            this.value = value;
+            this.property = property.isEmpty() ? "" : " " + property;
+        }
     }
 }

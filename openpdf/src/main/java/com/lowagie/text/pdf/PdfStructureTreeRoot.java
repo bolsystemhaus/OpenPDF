@@ -125,7 +125,7 @@ public class PdfStructureTreeRoot extends PdfDictionary {
             List<PdfObject> a = ar.getElements();
             for (int k = 0; k < a.size(); ++k) {
                 PdfStructureElement e = (PdfStructureElement) a.get(k);
-                a.set(k, e.getReference());
+                ar.set(k, e.getReference());
                 nodeProcess(e, e.getReference());
             }
         }

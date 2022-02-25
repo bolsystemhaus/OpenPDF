@@ -921,7 +921,7 @@ public class PdfDocument extends Document {
             // [C10]
             if (writer.isPdfX()) {
                 if (thisBoxSize.containsKey("art") && thisBoxSize.containsKey("trim"))
-                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("only.one.of.artbox.or.trimbox.can.exist.in.the.page"));
+                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("only.one.of.artbox.or.trimbox.can.exist.in.the.page"));
                 if (!thisBoxSize.containsKey("art") && !thisBoxSize.containsKey("trim")) {
                     if (thisBoxSize.containsKey("crop"))
                         thisBoxSize.put("trim", thisBoxSize.get("crop"));

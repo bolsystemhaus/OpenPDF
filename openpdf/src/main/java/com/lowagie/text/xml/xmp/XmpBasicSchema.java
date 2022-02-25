@@ -162,4 +162,14 @@ public class XmpBasicSchema extends XmpSchema {
     public void addNickname(String name) {
         setProperty(NICKNAME, name);
     }
+
+    @Override
+    public boolean hasExtensionSchema() {
+        return false;
+    }
+
+    @Override
+    public String getExtensionSchema() {
+        return null;
+    }
 }

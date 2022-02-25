@@ -1,5 +1,5 @@
 /*
- * $Id: PdfXConformanceException.java 3373 2008-05-12 16:21:24Z xlv $
+ * $Id: PdfConformanceException.java 3373 2008-05-12 16:21:24Z xlv $
  *
  * Copyright 2004 Paulo Soares
  *
@@ -53,19 +53,19 @@ package com.lowagie.text.pdf;
  *
  * @author  psoares
  */
-public class PdfXConformanceException extends RuntimeException {
+public class PdfConformanceException extends RuntimeException {
     
-    private static final long serialVersionUID = 9199144538884293397L;
+    private static final long serialVersionUID = 1504820137827675841L;
 
-    /** Creates a new instance of PdfXConformanceException. */
-    public PdfXConformanceException() {
+    /** Creates a new instance of PdfConformanceException. */
+    public PdfConformanceException() {
     }
     
     /**
-     * Creates a new instance of PdfXConformanceException.
+     * Creates a new instance of PdfConformanceException.
      * @param s the detail message. The detail message is saved for later retrieval by the Throwable.getMessage() method.
      */
-    public PdfXConformanceException(String s) {
+    public PdfConformanceException(String s) {
         super(s);
     }    
 }

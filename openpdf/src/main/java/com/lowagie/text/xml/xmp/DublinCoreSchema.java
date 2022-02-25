@@ -106,7 +106,7 @@ public class DublinCoreSchema extends XmpSchema {
      */
     public void addTitle(String title) {
         XmpArray array = new XmpArray(XmpArray.ALTERNATIVE);
-        array.add(title);
+        array.add(title, "xml:lang=\"x-default\"");
         setProperty(TITLE, array);
     }
 
@@ -116,7 +116,7 @@ public class DublinCoreSchema extends XmpSchema {
      */
     public void addDescription(String desc) {
         XmpArray array = new XmpArray(XmpArray.ALTERNATIVE);
-        array.add(desc);
+        array.add(desc, "xml:lang=\"x-default\"");
         setProperty(DESCRIPTION, array);
     }
 
@@ -179,5 +179,15 @@ public class DublinCoreSchema extends XmpSchema {
         XmpArray array = new XmpArray(XmpArray.ORDERED);
         array.addAll(Arrays.asList(publisher));
         setProperty(PUBLISHER, array);
+    }
+
+    @Override
+    public boolean hasExtensionSchema() {
+        return false;
+    }
+
+    @Override
+    public String getExtensionSchema() {
+        return null;
     }
 }

@@ -30,7 +30,7 @@
  * the MPL, indicate your decision by deleting the provisions above and
  * replace them with the notice and other provisions required by the LGPL.
  * If you do not delete the provisions above, a recipient may use your version
- * of this file under either the MPL or the GNU LIBRARY GENERAL PUBLIC LICENSE 
+ * of this file under either the MPL or the GNU LIBRARY GENERAL PUBLIC LICENSE
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the MPL as stated above or under the terms of the GNU
@@ -49,72 +49,90 @@
 
 package com.lowagie.text.xml.xmp;
 
-import com.lowagie.text.pdf.PdfDate;
-import com.lowagie.text.pdf.PdfDictionary;
-import com.lowagie.text.pdf.PdfName;
-import com.lowagie.text.pdf.PdfObject;
-import com.lowagie.text.pdf.PdfString;
-import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.*;
+import com.lowagie.text.pdf.interfaces.PdfConformance;
+import com.lowagie.text.pdf.internal.PdfConformanceImp;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
  * With this class you can create an Xmp Stream that can be used for adding
  * Metadata to a PDF Dictionary. Remark that this class doesn't cover the
- * complete XMP specification. 
+ * complete XMP specification.
  */
 public class XmpWriter {
 
-    /** A possible charset for the XMP. */
+    /**
+     * A possible charset for the XMP.
+     */
     public static final String UTF8 = "UTF-8";
-    /** A possible charset for the XMP. */
+    /**
+     * A possible charset for the XMP.
+     */
     public static final String UTF16 = "UTF-16";
-    /** A possible charset for the XMP. */
+    /**
+     * A possible charset for the XMP.
+     */
     public static final String UTF16BE = "UTF-16BE";
-    /** A possible charset for the XMP. */
+    /**
+     * A possible charset for the XMP.
+     */
     public static final String UTF16LE = "UTF-16LE";
-    
-    /** String used to fill the extra space. */
-    public static final String EXTRASPACE = "                                                                                                   \n";
-    
-    /** You can add some extra space in the XMP packet; 1 unit in this variable represents 100 spaces and a newline. */
-    protected int extraSpace;
-    
-    /** The writer to which you can write bytes for the XMP stream. */
-    protected OutputStreamWriter writer;
-    
-    /** The about string that goes into the rdf:Description tags. */
-    protected String about;
 
     /**
+     * String used to fill the extra space.
+     */
+    public static final String EXTRASPACE = "                                                                                                   \n";
+    /**
      * Processing Instruction required at the start of an XMP stream
+     *
      * @since iText 2.1.6
      */
     public static final String XPACKET_PI_BEGIN = "<?xpacket begin=\"\uFEFF\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n";
-    
     /**
      * Processing Instruction required at the end of an XMP stream for XMP streams that can be updated
+     *
      * @since iText 2.1.6
      */
     public static final String XPACKET_PI_END_W = "<?xpacket end=\"w\"?>";
-    
     /**
      * Processing Instruction required at the end of an XMP stream for XMP streams that are read only
+     *
      * @since iText 2.1.6
      */
     public static final String XPACKET_PI_END_R = "<?xpacket end=\"r\"?>";
-    
-    /** The end attribute. */
-    protected char end = 'w';
-    
     /**
-     * Creates an XmpWriter. 
-     * @param os output stream
+     * You can add some extra space in the XMP packet; 1 unit in this variable represents 100 spaces and a newline.
+     */
+    protected int extraSpace;
+    /**
+     * The writer to which you can write bytes for the XMP stream.
+     */
+    protected OutputStreamWriter writer;
+    /**
+     * The about string that goes into the rdf:Description tags.
+     */
+    protected String about;
+    /**
+     * The end attribute.
+     */
+    protected char end = 'w';
+
+    /**
+     * Creates an XmpWriter.
+     *
+     * @param os          output stream
      * @param utfEncoding utf encoding to be used
-     * @param extraSpace extra space
+     * @param extraSpace  extra space
      * @throws IOException on error
      */
     public XmpWriter(OutputStream os, String utfEncoding, int extraSpace) throws IOException {
@@ -125,9 +143,10 @@ public class XmpWriter {
         writer.write("<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n");
         about = "";
     }
-    
+
     /**
      * Creates an XmpWriter.
+     *
      * @param os output stream
      * @throws IOException on error
      */
@@ -135,69 +154,88 @@ public class XmpWriter {
         this(os, UTF8, 20);
     }
 
+    /**
+     * Wrapper for backward compatibility.
+     *
+     * @param os             output stream
+     * @param info           {@link PdfDictionary}
+     * @param pdfConformance pdf conformance
+     * @throws IOException on error
+     * @deprecated Use {@link XmpWriter#XmpWriter(OutputStream, PdfDictionary, PdfConformance)} instead.
+     */
+    @Deprecated
+    public XmpWriter(OutputStream os, PdfDictionary info, int pdfConformance) throws IOException {
+        this(os, info, convertPdfAConformance(pdfConformance));
+    }
 
     /**
-     * @param os output stream
-     * @param info {@link PdfDictionary}
-     * @param PdfXConformance pdf conformance
-     *                        eg. values {@link PdfWriter#PDFA1A}, {@link PdfWriter#PDFA1B}
+     * @param os             output stream
+     * @param info           {@link PdfDictionary}
+     * @param pdfConformance {@link PdfConformance}
      * @throws IOException on error
      */
-    public XmpWriter(OutputStream os, PdfDictionary info, int PdfXConformance) throws IOException {
+    public XmpWriter(OutputStream os, PdfDictionary info, PdfConformance pdfConformance) throws IOException {
         this(os);
         if (info != null) {
             DublinCoreSchema dc = new DublinCoreSchema();
             PdfSchema p = new PdfSchema();
             XmpBasicSchema basic = new XmpBasicSchema();
-            PdfName key;
-            PdfObject obj;
             for (PdfName pdfName : info.getKeys()) {
-                key = pdfName;
-                obj = info.get(key);
-                if (obj == null)
-                    continue;
-                if (PdfName.TITLE.equals(key)) {
+                PdfObject obj = info.get(pdfName);
+                if (obj == null) continue;
+                if (PdfName.TITLE.equals(pdfName)) {
                     dc.addTitle(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.AUTHOR.equals(key)) {
+                if (PdfName.AUTHOR.equals(pdfName)) {
                     dc.addAuthor(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.SUBJECT.equals(key)) {
-                    dc.addSubject(((PdfString) obj).toUnicodeString());
+                if (PdfName.SUBJECT.equals(pdfName)) {
                     dc.addDescription(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.KEYWORDS.equals(key)) {
+                if (PdfName.KEYWORDS.equals(pdfName)) {
                     p.addKeywords(((PdfString) obj).toUnicodeString());
+                    dc.addSubject(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.CREATOR.equals(key)) {
+                if (PdfName.CREATOR.equals(pdfName)) {
                     basic.addCreatorTool(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.PRODUCER.equals(key)) {
+                if (PdfName.PRODUCER.equals(pdfName)) {
                     p.addProducer(((PdfString) obj).toUnicodeString());
                 }
-                if (PdfName.CREATIONDATE.equals(key)) {
+                if (PdfName.CREATIONDATE.equals(pdfName)) {
                     basic.addCreateDate(((PdfDate) obj).getW3CDate());
                 }
-                if (PdfName.MODDATE.equals(key)) {
+                if (PdfName.MODDATE.equals(pdfName)) {
                     basic.addModDate(((PdfDate) obj).getW3CDate());
                 }
             }
-            if (dc.size() > 0) addRdfDescription(dc);
-            if (p.size() > 0) addRdfDescription(p);
-            if (basic.size() > 0) addRdfDescription(basic);
-            if (PdfXConformance == PdfWriter.PDFA1A || PdfXConformance == PdfWriter.PDFA1B) {
+
+            List<XmpSchema> xmpSchemas = new ArrayList<>();
+            if (dc.size() > 0) xmpSchemas.add(dc);
+            if (p.size() > 0) xmpSchemas.add(p);
+            if (basic.size() > 0) xmpSchemas.add(basic);
+
+            PdfConformance.PdfAConformance pdfAConformance = pdfConformance.getPdfAConformance();
+            if (pdfAConformance != PdfConformance.PdfAConformance.PDFANone) {
                 PdfA1Schema a1 = new PdfA1Schema();
-                if (PdfXConformance == PdfWriter.PDFA1A)
+                if (pdfAConformance == PdfConformance.PdfAConformance.PDFA1A) {
                     a1.addConformance("A");
-                else
+                } else {
                     a1.addConformance("B");
-                addRdfDescription(a1);
+                }
+                xmpSchemas.add(a1);
             }
+
+            if (pdfConformance.getPdfUaConformance() != PdfConformance.PdfUaConformance.PDFUANone) {
+                xmpSchemas.add(new PdfUaSchema());
+            }
+
+            writeSchemas(xmpSchemas);
         }
     }
 
     /**
-     * @param os output stream
+     * @param os   output stream
      * @param info map of info
      * @throws IOException on error
      */
@@ -222,11 +260,11 @@ public class XmpWriter {
                     dc.addAuthor(value);
                 }
                 if ("Subject".equals(key)) {
-                    dc.addSubject(value);
                     dc.addDescription(value);
                 }
                 if ("Keywords".equals(key)) {
                     p.addKeywords(value);
+                    dc.addSubject(value);
                 }
                 if ("Creator".equals(key)) {
                     basic.addCreatorTool(value);
@@ -241,27 +279,47 @@ public class XmpWriter {
                     basic.addModDate(PdfDate.getW3CDate(value));
                 }
             }
-            if (dc.size() > 0) addRdfDescription(dc);
-            if (p.size() > 0) addRdfDescription(p);
-            if (basic.size() > 0) addRdfDescription(basic);
+
+            List<XmpSchema> xmpSchemas = new ArrayList<>();
+            if (dc.size() > 0) xmpSchemas.add(dc);
+            if (p.size() > 0) xmpSchemas.add(p);
+            if (basic.size() > 0) xmpSchemas.add(basic);
+
+            writeSchemas(xmpSchemas);
         }
     }
-    
-    /** Sets the XMP to read-only */
+
+    private static PdfConformance convertPdfAConformance(int pdfConformance) {
+        PdfConformance conformance = new PdfConformanceImp();
+        switch (pdfConformance) {
+            case PdfWriter.PDFA1A:
+                conformance.setPdfAConformance(PdfConformance.PdfAConformance.PDFA1A);
+                break;
+            case PdfWriter.PDFA1B:
+                conformance.setPdfAConformance(PdfConformance.PdfAConformance.PDFA1B);
+                break;
+        }
+        return conformance;
+    }
+
+    /**
+     * Sets the XMP to read-only
+     */
     public void setReadOnly() {
         end = 'r';
     }
-    
+
     /**
      * @param about The about to set.
      */
     public void setAbout(String about) {
         this.about = about;
     }
-    
+
     /**
      * Adds an rdf:Description.
-     * @param xmlns xml namespace
+     *
+     * @param xmlns   xml namespace
      * @param content content
      * @throws IOException on error
      */
@@ -274,9 +332,10 @@ public class XmpWriter {
         writer.write(content);
         writer.write("</rdf:Description>\n");
     }
-    
+
     /**
      * Adds an rdf:Description.
+     *
      * @param s xmp schema
      * @throws IOException on error
      */
@@ -289,14 +348,58 @@ public class XmpWriter {
         writer.write(s.toString());
         writer.write("</rdf:Description>\n");
     }
-    
+
+    /**
+     * Writes all XMP Schemas and collects their namespaces into a single RDF description.
+     *
+     * @param schemas the XMP schemas
+     * @throws IOException on error
+     */
+    public void writeSchemas(List<XmpSchema> schemas) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<rdf:Description rdf:about=\"").append(about).append("\"");
+        for (XmpSchema s : schemas) {
+            sb.append(System.lineSeparator()).append(s.getXmlns());
+        }
+        for (XmpSchema s : schemas) {
+            for (String additionalXmln : s.getAdditionalXmlns()) {
+                sb.append(System.lineSeparator()).append(additionalXmln);
+            }
+        }
+        sb.append(">");
+
+        for (XmpSchema s : schemas) {
+            sb.append(System.lineSeparator()).append(s.toString());
+        }
+
+        boolean addedExtensionSchema = false;
+        for (XmpSchema s : schemas) {
+            if (s.hasExtensionSchema()) {
+                if (!addedExtensionSchema) {
+                    sb.append(System.lineSeparator()).append("<pdfaExtension:schemas>")
+                            .append(System.lineSeparator()).append("<rdf:Bag>");
+                    addedExtensionSchema = true;
+                }
+                sb.append(System.lineSeparator()).append(s.getExtensionSchema());
+            }
+        }
+        if (addedExtensionSchema) {
+            sb.append(System.lineSeparator()).append("</rdf:Bag>")
+                    .append(System.lineSeparator()).append("</pdfaExtension:schemas>");
+        }
+
+        sb.append(System.lineSeparator()).append("</rdf:Description>");
+        writer.write(sb.toString());
+    }
+
     /**
      * Flushes and closes the XmpWriter.
+     *
      * @throws IOException on error
      */
     public void close() throws IOException {
-        writer.write("</rdf:RDF>");
-        writer.write("</x:xmpmeta>\n");
+        writer.write("\n</rdf:RDF>");
+        writer.write("\n</x:xmpmeta>");
         for (int i = 0; i < extraSpace; i++) {
             writer.write(EXTRASPACE);
         }

@@ -49,48 +49,26 @@
 
 package com.lowagie.text.pdf;
 
-import com.lowagie.text.DocListener;
-import com.lowagie.text.DocWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.ExceptionConverter;
 import com.lowagie.text.Image;
-import com.lowagie.text.ImgJBIG2;
-import com.lowagie.text.ImgWMF;
 import com.lowagie.text.Rectangle;
-import com.lowagie.text.Table;
+import com.lowagie.text.*;
 import com.lowagie.text.error_messages.MessageLocalization;
 import com.lowagie.text.pdf.collection.PdfCollection;
 import com.lowagie.text.pdf.events.PdfPageEventForwarder;
-import com.lowagie.text.pdf.interfaces.PdfAnnotations;
-import com.lowagie.text.pdf.interfaces.PdfDocumentActions;
-import com.lowagie.text.pdf.interfaces.PdfEncryptionSettings;
-import com.lowagie.text.pdf.interfaces.PdfPageActions;
-import com.lowagie.text.pdf.interfaces.PdfRunDirection;
-import com.lowagie.text.pdf.interfaces.PdfVersion;
-import com.lowagie.text.pdf.interfaces.PdfViewerPreferences;
-import com.lowagie.text.pdf.interfaces.PdfXConformance;
+import com.lowagie.text.pdf.interfaces.*;
+import com.lowagie.text.pdf.internal.PdfConformanceImp;
 import com.lowagie.text.pdf.internal.PdfVersionImp;
 import com.lowagie.text.pdf.internal.PdfXConformanceImp;
 import com.lowagie.text.xml.xmp.XmpWriter;
-import java.awt.Color;
+
+import java.awt.*;
 import java.awt.color.ICC_Profile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -1129,7 +1107,7 @@ public class PdfWriter extends DocWriter implements
         try {
             pdf_version.writeHeader(os);
             body = new PdfBody(this);
-            if (pdfxConformance.isPdfX32002()) {
+            if (pdfConformance.getPdfXConformance() == PdfConformance.PdfXConformance.PDFX32002) {
                 PdfDictionary sec = new PdfDictionary();
                 sec.put(PdfName.GAMMA, new PdfArray(new float[]{2.2f,2.2f,2.2f}));
                 sec.put(PdfName.MATRIX, new PdfArray(new float[]{0.4124f,0.2126f,0.0193f,0.3576f,0.7152f,0.1192f,0.1805f,0.0722f,0.9505f}));
@@ -1157,7 +1135,6 @@ public class PdfWriter extends DocWriter implements
     @Override
     public void close() {
         if (open) {
-
             if ((currentPageNumber - 1) != pageReferences.size())
                 // 2019-04-26: If you get this error, it could be that you are using OpenPDF or
                 // another library such as flying-saucer's ITextRenderer in a non-threadsafe way.
@@ -1186,9 +1163,9 @@ public class PdfWriter extends DocWriter implements
                     catalog.put(PdfName.METADATA, body.add(xmp).getIndirectReference());
                 }
                 // [C10] make pdfx conformant
-                if (isPdfX()) {
-                    pdfxConformance.completeInfoDictionary(getInfo());
-                    pdfxConformance.completeExtraCatalog(getExtraCatalog());
+                if (pdfConformance.getPdfXConformance() != PdfConformance.PdfXConformance.PDFXNone) {
+                    pdfConformance.completeInfoDictionary(getInfo());
+                    pdfConformance.completeExtraCatalog(getExtraCatalog());
                 }
                 // [C11] Output Intents
                 if (extraCatalog != null) {
@@ -1718,7 +1695,7 @@ public class PdfWriter extends DocWriter implements
     private byte[] createXmpMetadataBytes() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            XmpWriter xmp = new XmpWriter(baos, pdf.getInfo(), pdfxConformance.getPDFXConformance());
+            XmpWriter xmp = new XmpWriter(baos, pdf.getInfo(), pdfConformance);
             xmp.close();
         }
         catch (IOException ioe) {
@@ -1728,28 +1705,40 @@ public class PdfWriter extends DocWriter implements
     }
 
 //  [C10] PDFX Conformance
-    /** A PDF/X level. */
+
+//region deprecated pdf conformance implementation.
+    /** A PDF/X level. @deprecated Use {@link com.lowagie.text.pdf.interfaces.PdfConformance} instead. */
+    @Deprecated
     public static final int PDFXNONE = 0;
-    /** A PDF/X level. */
+    /** A PDF/X level. @deprecated Use {@link com.lowagie.text.pdf.interfaces.PdfConformance} instead. */
+    @Deprecated
     public static final int PDFX1A2001 = 1;
-    /** A PDF/X level. */
+    /** A PDF/X level. @deprecated Use {@link com.lowagie.text.pdf.interfaces.PdfConformance} instead. */
+    @Deprecated
     public static final int PDFX32002 = 2;
-    /** PDFA-1A level. */
+    /** PDFA-1A level. @deprecated Use {@link com.lowagie.text.pdf.interfaces.PdfConformance} instead. */
+    @Deprecated
     public static final int PDFA1A = 3;
-    /** PDFA-1B level. */
+    /** PDFA-1B level. @deprecated Use {@link com.lowagie.text.pdf.interfaces.PdfConformance} instead. */
+    @Deprecated
     public static final int PDFA1B = 4;
 
     /** Stores the PDF/X level. */
+    @Deprecated
     private PdfXConformanceImp pdfxConformance = new PdfXConformanceImp();
 
-    /** @see com.lowagie.text.pdf.interfaces.PdfXConformance#setPDFXConformance(int) */
+    /**
+     * @see com.lowagie.text.pdf.interfaces.PdfXConformance#setPDFXConformance(int)
+     * @deprecated Use {@link #setPdfConformance(PdfConformance.PdfXConformance)} instead.
+     */
+    @Deprecated
     public void setPDFXConformance(int pdfx) {
         if (pdfxConformance.getPDFXConformance() == pdfx)
             return;
         if (pdf.isOpen())
-            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("pdfx.conformance.can.only.be.set.before.opening.the.document"));
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
         if (crypto != null)
-            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("a.pdfx.conforming.document.cannot.be.encrypted"));
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("a.pdfx.conforming.document.cannot.be.encrypted"));
         if (pdfx == PDFA1A || pdfx == PDFA1B)
             setPdfVersion(VERSION_1_4);
         else if (pdfx != PDFXNONE)
@@ -1757,14 +1746,68 @@ public class PdfWriter extends DocWriter implements
         pdfxConformance.setPDFXConformance(pdfx);
     }
 
-    /** @see com.lowagie.text.pdf.interfaces.PdfXConformance#getPDFXConformance() */
+    /** @see com.lowagie.text.pdf.interfaces.PdfXConformance#getPDFXConformance()
+     * @deprecated Use {@link #getPdfConformance()} instead.
+     */
+    @Deprecated
     public int getPDFXConformance() {
         return pdfxConformance.getPDFXConformance();
     }
 
-    /** @see com.lowagie.text.pdf.interfaces.PdfXConformance#isPdfX() */
+    /**
+     * @see com.lowagie.text.pdf.interfaces.PdfXConformance#isPdfX()
+     * @deprecated Use {@link #getPdfConformance()} instead.
+     */
+    @Deprecated
     public boolean isPdfX() {
         return pdfxConformance.isPdfX();
+    }
+
+//endregion
+
+    private PdfConformanceImp pdfConformance = new PdfConformanceImp();
+    public PdfConformance getPdfConformance(){
+        return pdfConformance;
+    }
+
+    public void setPdfConformance(PdfConformance.PdfXConformance pdfXConformance) {
+        if (pdfConformance.getPdfXConformance() == pdfXConformance)
+            return;
+        if (pdf.isOpen())
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+        if (crypto != null && pdfXConformance != PdfConformance.PdfXConformance.PDFXNone)
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
+
+        if (pdfXConformance != PdfConformance.PdfXConformance.PDFXNone) {
+            setAtLeastPdfVersion(VERSION_1_3);
+        }
+        pdfConformance.setPdfXConformance(pdfXConformance);
+    }
+
+    public void setPdfConformance(PdfConformance.PdfAConformance pdfAConformance) {
+        if (pdfConformance.getPdfAConformance() == pdfAConformance)
+            return;
+        if (pdf.isOpen())
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+        if (crypto != null && pdfAConformance != PdfConformance.PdfAConformance.PDFANone)
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
+
+        if (pdfAConformance != PdfConformance.PdfAConformance.PDFANone) {
+            setAtLeastPdfVersion(VERSION_1_4);
+        }
+        pdfConformance.setPdfAConformance(pdfAConformance);
+    }
+
+    public void setPdfConformance(PdfConformance.PdfUaConformance pdfUaConformance) {
+        if (pdfConformance.getPdfUaConformance() == pdfUaConformance)
+            return;
+        if (pdf.isOpen())
+            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+
+        if (pdfUaConformance != PdfConformance.PdfUaConformance.PDFUANone) {
+            setAtLeastPdfVersion(VERSION_1_7);
+        }
+        pdfConformance.setPdfUaConformance(pdfUaConformance);
     }
 
 //  [C11] Output intents
@@ -1797,7 +1840,7 @@ public class PdfWriter extends DocWriter implements
         }
 
         PdfName intentSubtype;
-        if (pdfxConformance.isPdfA1() || "PDFA/1".equals(outputCondition)) {
+        if (pdfConformance.getPdfAConformance() == PdfConformance.PdfAConformance.PDFA1A || "PDFA/1".equals(outputCondition)) {
             intentSubtype = PdfName.GTS_PDFA1;
         }
         else {
