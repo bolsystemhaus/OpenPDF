@@ -98,14 +98,4 @@ public class PdfSchema extends XmpSchema {
     public void addVersion(String version) {
         setProperty(VERSION, version);
     }
-
-    @Override
-    public boolean hasExtensionSchema() {
-        return false;
-    }
-
-    @Override
-    public String getExtensionSchema() {
-        return null;
-    }
 }

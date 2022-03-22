@@ -60,6 +60,7 @@ import com.lowagie.text.pdf.internal.PdfConformanceImp;
 import com.lowagie.text.pdf.internal.PdfVersionImp;
 import com.lowagie.text.pdf.internal.PdfXConformanceImp;
 import com.lowagie.text.xml.xmp.XmpWriter;
+import com.lowagie.text.pdf.interfaces.PdfXConformance;
 
 import java.awt.*;
 import java.awt.color.ICC_Profile;
@@ -85,6 +86,7 @@ public class PdfWriter extends DocWriter implements
     PdfVersion,
     PdfDocumentActions,
     PdfPageActions,
+    PdfConformance,
     PdfXConformance,
     PdfRunDirection,
     PdfAnnotations {
@@ -1107,7 +1109,7 @@ public class PdfWriter extends DocWriter implements
         try {
             pdf_version.writeHeader(os);
             body = new PdfBody(this);
-            if (pdfConformance.getPdfXConformance() == PdfConformance.PdfXConformance.PDFX32002) {
+            if (pdfConformance.getPdfXConformance() == PdfXConformance.PDFX32002) {
                 PdfDictionary sec = new PdfDictionary();
                 sec.put(PdfName.GAMMA, new PdfArray(new float[]{2.2f,2.2f,2.2f}));
                 sec.put(PdfName.MATRIX, new PdfArray(new float[]{0.4124f,0.2126f,0.0193f,0.3576f,0.7152f,0.1192f,0.1805f,0.0722f,0.9505f}));
@@ -1163,7 +1165,7 @@ public class PdfWriter extends DocWriter implements
                     catalog.put(PdfName.METADATA, body.add(xmp).getIndirectReference());
                 }
                 // [C10] make pdfx conformant
-                if (pdfConformance.getPdfXConformance() != PdfConformance.PdfXConformance.PDFXNone) {
+                if (pdfConformance.getPdfXConformance() != PdfXConformance.PDFXNone) {
                     pdfConformance.completeInfoDictionary(getInfo());
                     pdfConformance.completeExtraCatalog(getExtraCatalog());
                 }
@@ -1723,91 +1725,112 @@ public class PdfWriter extends DocWriter implements
     @Deprecated
     public static final int PDFA1B = 4;
 
-    /** Stores the PDF/X level. */
-    @Deprecated
-    private PdfXConformanceImp pdfxConformance = new PdfXConformanceImp();
-
     /**
      * @see com.lowagie.text.pdf.interfaces.PdfXConformance#setPDFXConformance(int)
      * @deprecated Use {@link #setPdfConformance(PdfConformance.PdfXConformance)} instead.
      */
     @Deprecated
+    @Override
     public void setPDFXConformance(int pdfx) {
-        if (pdfxConformance.getPDFXConformance() == pdfx)
-            return;
-        if (pdf.isOpen())
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
-        if (crypto != null)
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("a.pdfx.conforming.document.cannot.be.encrypted"));
-        if (pdfx == PDFA1A || pdfx == PDFA1B)
-            setPdfVersion(VERSION_1_4);
-        else if (pdfx != PDFXNONE)
-            setPdfVersion(VERSION_1_3);
-        pdfxConformance.setPDFXConformance(pdfx);
+        switch (pdfx){
+            case PDFXNONE:
+            default:
+                setPdfConformance(PdfXConformance.PDFXNone);
+                setPdfConformance(PdfAConformance.PDFANone);
+                break;
+            case PDFX1A2001:
+                setPdfConformance(PdfXConformance.PDFX1A2001);
+                break;
+            case PDFX32002:
+                setPdfConformance(PdfXConformance.PDFX32002);
+                break;
+            case PDFA1A:
+                setPdfConformance(PdfAConformance.PDFA1A);
+                break;
+            case PDFA1B:
+                setPdfConformance(PdfAConformance.PDFA1B);
+                break;
+        }
     }
 
     /** @see com.lowagie.text.pdf.interfaces.PdfXConformance#getPDFXConformance()
-     * @deprecated Use {@link #getPdfConformance()} instead.
+     * @deprecated Use {@link #getPdfXConformance()} instead.
      */
     @Deprecated
+    @Override
     public int getPDFXConformance() {
-        return pdfxConformance.getPDFXConformance();
+        return pdfConformance.getPdfXConformance().ordinal();
     }
 
     /**
      * @see com.lowagie.text.pdf.interfaces.PdfXConformance#isPdfX()
-     * @deprecated Use {@link #getPdfConformance()} instead.
+     * @deprecated Use {@link #getPdfXConformance()} instead.
      */
     @Deprecated
+    @Override
     public boolean isPdfX() {
-        return pdfxConformance.isPdfX();
+        return pdfConformance.getPdfXConformance() != PdfXConformance.PDFXNone;
     }
 
 //endregion
 
     private PdfConformanceImp pdfConformance = new PdfConformanceImp();
-    public PdfConformance getPdfConformance(){
-        return pdfConformance;
-    }
 
+    @Override
     public void setPdfConformance(PdfConformance.PdfXConformance pdfXConformance) {
         if (pdfConformance.getPdfXConformance() == pdfXConformance)
             return;
         if (pdf.isOpen())
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
         if (crypto != null && pdfXConformance != PdfConformance.PdfXConformance.PDFXNone)
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
+            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
 
         if (pdfXConformance != PdfConformance.PdfXConformance.PDFXNone) {
             setAtLeastPdfVersion(VERSION_1_3);
         }
-        pdfConformance.setPdfXConformance(pdfXConformance);
+        pdfConformance.setPdfConformance(pdfXConformance);
     }
 
+    @Override
+    public PdfConformance.PdfXConformance getPdfXConformance(){
+        return pdfConformance.getPdfXConformance();
+    }
+
+    @Override
     public void setPdfConformance(PdfConformance.PdfAConformance pdfAConformance) {
         if (pdfConformance.getPdfAConformance() == pdfAConformance)
             return;
         if (pdf.isOpen())
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
         if (crypto != null && pdfAConformance != PdfConformance.PdfAConformance.PDFANone)
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
+            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("the.pdf.conformance.for.this.document.does.not.allow.encryption"));
 
         if (pdfAConformance != PdfConformance.PdfAConformance.PDFANone) {
             setAtLeastPdfVersion(VERSION_1_4);
         }
-        pdfConformance.setPdfAConformance(pdfAConformance);
+        pdfConformance.setPdfConformance(pdfAConformance);
+    }
+
+    @Override
+    public PdfConformance.PdfAConformance getPdfAConformance(){
+        return pdfConformance.getPdfAConformance();
     }
 
     public void setPdfConformance(PdfConformance.PdfUaConformance pdfUaConformance) {
         if (pdfConformance.getPdfUaConformance() == pdfUaConformance)
             return;
         if (pdf.isOpen())
-            throw new PdfConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
+            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("pdf.conformance.can.only.be.set.before.opening.the.document"));
 
         if (pdfUaConformance != PdfConformance.PdfUaConformance.PDFUANone) {
             setAtLeastPdfVersion(VERSION_1_7);
         }
-        pdfConformance.setPdfUaConformance(pdfUaConformance);
+        pdfConformance.setPdfConformance(pdfUaConformance);
+    }
+
+    @Override
+    public PdfConformance.PdfUaConformance getPdfUaConformance(){
+        return pdfConformance.getPdfUaConformance();
     }
 
 //  [C11] Output intents
@@ -1840,7 +1863,7 @@ public class PdfWriter extends DocWriter implements
         }
 
         PdfName intentSubtype;
-        if (pdfConformance.getPdfAConformance() == PdfConformance.PdfAConformance.PDFA1A || "PDFA/1".equals(outputCondition)) {
+        if (pdfConformance.getPdfAConformance() == PdfAConformance.PDFA1A || "PDFA/1".equals(outputCondition)) {
             intentSubtype = PdfName.GTS_PDFA1;
         }
         else {

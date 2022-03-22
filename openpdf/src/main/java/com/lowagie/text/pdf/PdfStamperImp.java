@@ -131,8 +131,10 @@ class PdfStamperImp extends PdfWriter {
                 super.setPdfVersion(pdfVersion);
         }
         PdfDictionary markInfo = reader.getCatalog().getAsDict(PdfName.MARKINFO);
-        if(markInfo != null && markInfo.getAsBoolean(PdfName.MARKED).booleanValue()) {
-            setTagged();
+        if(markInfo != null) {
+            if (markInfo.getAsBoolean(PdfName.MARKED) == PdfBoolean.PDFTRUE){
+                setTagged();
+            }
         }
         super.open();
         pdf.addWriter(this);

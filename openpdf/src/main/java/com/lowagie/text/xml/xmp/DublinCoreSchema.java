@@ -180,14 +180,4 @@ public class DublinCoreSchema extends XmpSchema {
         array.addAll(Arrays.asList(publisher));
         setProperty(PUBLISHER, array);
     }
-
-    @Override
-    public boolean hasExtensionSchema() {
-        return false;
-    }
-
-    @Override
-    public String getExtensionSchema() {
-        return null;
-    }
 }

@@ -12,7 +12,7 @@ public interface PdfConformance {
      * It must be called before opening the document.
      * @param pdfxConformance the conformance level
      */
-    void setPdfXConformance(PdfXConformance pdfxConformance);
+    void setPdfConformance(PdfXConformance pdfxConformance);
 
     /**
      * Getter for the PDF/X Conformance value.
@@ -25,7 +25,7 @@ public interface PdfConformance {
      * It must be called before opening the document.
      * @param pdfAConformance the conformance level.
      */
-    void setPdfAConformance(PdfAConformance pdfAConformance);
+    void setPdfConformance(PdfAConformance pdfAConformance);
 
     /**
      * Getter for the PDF/A Conformance value.
@@ -38,7 +38,7 @@ public interface PdfConformance {
      * It must be called before opening the document.
      * @param pdfUaConformance the conformance level.
      */
-    void setPdfUaConformance(PdfUaConformance pdfUaConformance);
+    void setPdfConformance(PdfUaConformance pdfUaConformance);
 
     /**
      * Getter for the PDF/UA Conformance value.

@@ -56,10 +56,6 @@ import com.lowagie.text.pdf.internal.PdfConformanceImp;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -239,18 +235,15 @@ public class XmpWriter {
      * @param info map of info
      * @throws IOException on error
      */
-    public XmpWriter(OutputStream os, Map info) throws IOException {
+    public XmpWriter(OutputStream os, Map<String, String> info) throws IOException {
         this(os);
         if (info != null) {
             DublinCoreSchema dc = new DublinCoreSchema();
             PdfSchema p = new PdfSchema();
             XmpBasicSchema basic = new XmpBasicSchema();
-            String key;
-            String value;
-            for (Object o : info.entrySet()) {
-                Map.Entry entry = (Map.Entry) o;
-                key = (String) entry.getKey();
-                value = (String) entry.getValue();
+            for (Map.Entry<String, String> entry : info.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
                 if (value == null)
                     continue;
                 if ("Title".equals(key)) {
@@ -293,10 +286,10 @@ public class XmpWriter {
         PdfConformance conformance = new PdfConformanceImp();
         switch (pdfConformance) {
             case PdfWriter.PDFA1A:
-                conformance.setPdfAConformance(PdfConformance.PdfAConformance.PDFA1A);
+                conformance.setPdfConformance(PdfConformance.PdfAConformance.PDFA1A);
                 break;
             case PdfWriter.PDFA1B:
-                conformance.setPdfAConformance(PdfConformance.PdfAConformance.PDFA1B);
+                conformance.setPdfConformance(PdfConformance.PdfAConformance.PDFA1B);
                 break;
         }
         return conformance;
@@ -322,7 +315,9 @@ public class XmpWriter {
      * @param xmlns   xml namespace
      * @param content content
      * @throws IOException on error
+     * @deprecated use {@link #writeSchemas(List) instead.}
      */
+    @Deprecated
     public void addRdfDescription(String xmlns, String content) throws IOException {
         writer.write("<rdf:Description rdf:about=\"");
         writer.write(about);
@@ -338,7 +333,9 @@ public class XmpWriter {
      *
      * @param s xmp schema
      * @throws IOException on error
+     * @deprecated use {@link #writeSchemas(List) instead.}
      */
+    @Deprecated
     public void addRdfDescription(XmpSchema s) throws IOException {
         writer.write("<rdf:Description rdf:about=\"");
         writer.write(about);
@@ -374,7 +371,8 @@ public class XmpWriter {
 
         boolean addedExtensionSchema = false;
         for (XmpSchema s : schemas) {
-            if (s.hasExtensionSchema()) {
+            String extensionSchema = s.getExtensionSchema();
+            if (extensionSchema != null && !extensionSchema.isEmpty()) {
                 if (!addedExtensionSchema) {
                     sb.append(System.lineSeparator()).append("<pdfaExtension:schemas>")
                             .append(System.lineSeparator()).append("<rdf:Bag>");

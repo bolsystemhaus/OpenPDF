@@ -26,7 +26,6 @@
 1.unsupported.jpeg.marker.2={1}: unsupported JPEG marker: {2}
 a.pattern.can.not.be.used.as.a.template.to.create.an.image=A pattern can not be used as a template to create an image.
 a.pdfx.conforming.document.cannot.be.encrypted=A PDFX conforming document cannot be encrypted.
-the.pdf.conformance.for.this.document.does.not.allow.encryption=The PDF conformance for this document does not allow encryption
 a.string.1.was.passed.in.state.only.on.off.and.toggle.are.allowed=A string '{1} was passed in state. Only 'ON', 'OFF' and 'Toggle' are allowed.
 a.tab.position.may.not.be.lower.than.0.yours.is.1=A tab position may not be lower than 0; yours is {1}
 a.table.should.have.at.least.1.column=A table should have at least 1 column.
@@ -320,6 +319,7 @@ the.number.of.columns.in.pdfptable.constructor.must.be.greater.than.zero=The num
 the.original.document.was.reused.read.it.again.from.file=The original document was reused. Read it again from file.
 the.page.number.must.be.gt.eq.1=The page number must be >= 1.
 the.parent.has.already.another.function=The parent has already another function.
+the.pdf.conformance.for.this.document.does.not.allow.encryption=The PDF conformance for this document does not allow encryption
 the.photometric.1.is.not.supported=The photometric {1} is not supported.
 the.resource.cjkencodings.properties.does.not.contain.the.encoding.1=The resource cjkencodings.properties does not contain the encoding {1}
 the.smask.key.is.not.allowed.in.images=The /SMask key is not allowed in images.

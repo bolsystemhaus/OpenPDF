@@ -129,14 +129,4 @@ public class XmpMMSchema extends XmpSchema {
     public XmpMMSchema() {
         super("xmlns:" + DEFAULT_XPATH_ID + "=\"" + DEFAULT_XPATH_URI + "\"");
     }
-
-    @Override
-    public boolean hasExtensionSchema() {
-        return false;
-    }
-
-    @Override
-    public String getExtensionSchema() {
-        return null;
-    }
 }

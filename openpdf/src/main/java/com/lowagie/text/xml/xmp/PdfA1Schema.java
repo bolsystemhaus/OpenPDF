@@ -85,14 +85,4 @@ public class PdfA1Schema extends XmpSchema {
     public void addConformance(String conformance) {
         setProperty(CONFORMANCE, conformance);
     }
-
-    @Override
-    public boolean hasExtensionSchema() {
-        return false;
-    }
-
-    @Override
-    public String getExtensionSchema() {
-        return null;
-    }
 }

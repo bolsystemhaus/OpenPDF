@@ -191,7 +191,7 @@ public class PdfXConformanceImp implements PdfXConformance {
                                 case ExtendedColor.TYPE_GRAY:
                                     return;
                                 case ExtendedColor.TYPE_RGB:
-                                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
+                                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
                                 case ExtendedColor.TYPE_SEPARATION:
                                     SpotColor sc = (SpotColor)ec;
                                     checkPDFXConformance(writer, PDFXKEY_COLOR, sc.getPdfSpotColor().getAlternativeCS());
@@ -207,7 +207,7 @@ public class PdfXConformanceImp implements PdfXConformance {
                             }
                         }
                         else if (obj1 instanceof Color)
-                            throw new PdfConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
+                            throw new PdfXConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
                         break;
                 }
                 break;
@@ -215,16 +215,16 @@ public class PdfXConformanceImp implements PdfXConformance {
                 break;
             case PDFXKEY_RGB:
                 if (conf == PdfWriter.PDFX1A2001)
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
                 break;
             case PDFXKEY_FONT:
                 if (!((BaseFont)obj1).isEmbedded())
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("all.the.fonts.must.be.embedded.this.one.isn.t.1", ((BaseFont)obj1).getPostscriptFontName()));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("all.the.fonts.must.be.embedded.this.one.isn.t.1", ((BaseFont)obj1).getPostscriptFontName()));
                 break;
             case PDFXKEY_IMAGE:
                 PdfImage image = (PdfImage)obj1;
                 if (image.get(PdfName.SMASK) != null)
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("the.smask.key.is.not.allowed.in.images"));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("the.smask.key.is.not.allowed.in.images"));
                 switch (conf) {
                     case PdfWriter.PDFX1A2001:
                         PdfObject cs = image.get(PdfName.COLORSPACE);
@@ -232,11 +232,11 @@ public class PdfXConformanceImp implements PdfXConformance {
                             return;
                         if (cs.isName()) {
                             if (PdfName.DEVICERGB.equals(cs))
-                                throw new PdfConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
+                                throw new PdfXConformanceException(MessageLocalization.getComposedMessage("colorspace.rgb.is.not.allowed"));
                         }
                         else if (cs.isArray()) {
                             if (PdfName.CALRGB.equals(((PdfArray)cs).getPdfObject(0)))
-                                throw new PdfConformanceException(MessageLocalization.getComposedMessage("colorspace.calrgb.is.not.allowed"));
+                                throw new PdfXConformanceException(MessageLocalization.getComposedMessage("colorspace.calrgb.is.not.allowed"));
                         }
                         break;
                 }
@@ -245,18 +245,18 @@ public class PdfXConformanceImp implements PdfXConformance {
                 PdfDictionary gs = (PdfDictionary)obj1;
                 PdfObject obj = gs.get(PdfName.BM);
                 if (obj != null && !PdfGState.BM_NORMAL.equals(obj) && !PdfGState.BM_COMPATIBLE.equals(obj))
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("blend.mode.1.not.allowed", obj.toString()));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("blend.mode.1.not.allowed", obj.toString()));
                 obj = gs.get(PdfName.CA);
                 double v = 0.0;
                 if (obj != null && (v = ((PdfNumber)obj).doubleValue()) != 1.0)
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("transparency.is.not.allowed.ca.eq.1", String.valueOf(v)));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("transparency.is.not.allowed.ca.eq.1", String.valueOf(v)));
                 obj = gs.get(PdfName.ca);
                 v = 0.0;
                 if (obj != null && (v = ((PdfNumber)obj).doubleValue()) != 1.0)
-                    throw new PdfConformanceException(MessageLocalization.getComposedMessage("transparency.is.not.allowed.ca.eq.1", String.valueOf(v)));
+                    throw new PdfXConformanceException(MessageLocalization.getComposedMessage("transparency.is.not.allowed.ca.eq.1", String.valueOf(v)));
                 break;
             case PDFXKEY_LAYER:
-                throw new PdfConformanceException(MessageLocalization.getComposedMessage("layers.are.not.allowed"));
+                throw new PdfXConformanceException(MessageLocalization.getComposedMessage("layers.are.not.allowed"));
         }
     }
 }
