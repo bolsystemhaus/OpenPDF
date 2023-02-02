@@ -60,6 +60,7 @@ import java.util.Map;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Utilities;
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.interfaces.PdfConformance;
 
 /** Represents a True Type font with Unicode encoding. All the character
  * in the font can be used directly by using the encoding Identity-H or
@@ -396,7 +397,11 @@ class TrueTypeFontUnicode extends TrueTypeFont implements Comparator{
         PdfObject pobj = null;
         PdfIndirectObject obj = null;
         PdfIndirectReference cidset = null;
-        if (writer.getPDFXConformance() == PdfWriter.PDFA1A || writer.getPDFXConformance() == PdfWriter.PDFA1B) {
+
+        final PdfConformance.PdfAConformance pdfAConformance = writer.getPdfAConformance();
+
+        if (PdfConformance.PdfAConformance.PDFA1A.equals(pdfAConformance)
+                || PdfConformance.PdfAConformance.PDFA1B.equals(pdfAConformance)) {
             PdfStream stream;
             if (metrics.length == 0) {
                 stream = new PdfStream(new byte[]{(byte)0x80});
