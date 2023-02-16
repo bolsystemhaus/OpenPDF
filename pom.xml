@@ -45,10 +45,24 @@
         <developerConnection>scm:git:https://github.com/LibrePDF/OpenPDF</developerConnection>
     </scm>
     <!-- Distribution config from http://central.sonatype.org/pages/apache-maven.html#distribution-management-and-authentication -->
+    <!--
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    -->
+
+    <!-- Distribution config for bol Systemhaus -->
+    <distributionManagement>
+        <repository>
+            <id>s3-releases</id>
+            <url>${env.URL_RELEASES}</url>
+        </repository>
+        <snapshotRepository>
+            <id>s3-snapshots</id>
+            <url>${env.URL_SNAPSHOTS}</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -332,7 +346,7 @@
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>${nexus-staging-maven-plugin.version}</version>
-                <extensions>true</extensions>
+                <extensions>false</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>

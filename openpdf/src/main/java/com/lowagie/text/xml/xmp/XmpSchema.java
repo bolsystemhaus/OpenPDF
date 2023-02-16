@@ -59,9 +59,9 @@ public abstract class XmpSchema extends Properties {
 
     private static final long serialVersionUID = -176374295948945272L;
 
-    /** the namesspace */
+    /** The namesspace */
     protected String xmlns;
-    
+
     /**
      * Constructs an XMP schema.
      *
@@ -89,6 +89,7 @@ public abstract class XmpSchema extends Properties {
      * @param p object
      */
     protected void process(StringBuffer buf, Object p) {
+        buf.append(System.lineSeparator());
         buf.append('<');
         buf.append(p);
         buf.append('>');
@@ -172,4 +173,18 @@ public abstract class XmpSchema extends Properties {
         }
         return buf.toString();
     }
+
+    /**
+     * Can be overwritten by a concrete schema to provide additional xmlns.
+     * @return the additional xmlns, will be ignored if the array is empty.
+     */
+    public String[] getAdditionalXmlns(){
+        return new String[0];
+    }
+
+    /**
+     * Can be overwritten by a concrete schema to provide and extension schema.
+     * @return the extension schema, will be ignored if the string is null or empty.
+     */
+    public String getExtensionSchema() {return null;}
 }
