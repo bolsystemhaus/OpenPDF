@@ -60,7 +60,7 @@ import java.util.Map;
  */
 public class PdfStructureTreeRoot extends PdfDictionary {
 
-    private final Map<Integer, PdfArray> parentTree = new HashMap<>();
+    private final Map<Integer, PdfObject> parentTree = new HashMap<>();
     private final PdfIndirectReference reference;
 
     /**
@@ -109,8 +109,13 @@ public class PdfStructureTreeRoot extends PdfDictionary {
 
     void setPageMark(int page, PdfIndirectReference reference) {
         Integer i = page;
-        PdfArray ar = parentTree.get(i);
-        if (ar == null) {
+
+        final PdfObject pdfObject = parentTree.get(i);
+
+        final PdfArray ar;
+        if (pdfObject instanceof PdfArray) {
+            ar = (PdfArray) pdfObject;
+        } else {
             ar = new PdfArray();
             parentTree.put(i, ar);
         }
@@ -137,8 +142,17 @@ public class PdfStructureTreeRoot extends PdfDictionary {
     void buildTree() throws IOException {
         Map<Integer, PdfIndirectReference> numTree = new HashMap<>();
         for (Integer i : parentTree.keySet()) {
-            PdfArray ar = parentTree.get(i);
-            numTree.put(i, writer.addToBody(ar).getIndirectReference());
+            final PdfObject pdfObject = parentTree.get(i);
+
+            if (pdfObject instanceof PdfArray) {
+                final PdfArray ar = (PdfArray) pdfObject;
+
+                numTree.put(i, writer.addToBody(ar).getIndirectReference());
+            } else if (pdfObject instanceof PdfIndirectReference){
+                final PdfIndirectReference pdfIndirectReference = (PdfIndirectReference) pdfObject;
+
+                numTree.put(i, pdfIndirectReference);
+            }
         }
         PdfDictionary dicTree = PdfNumberTree.writeTree(numTree, writer);
         if (dicTree != null)
@@ -146,4 +160,9 @@ public class PdfStructureTreeRoot extends PdfDictionary {
         
         nodeProcess(this, reference);
     }
+
+    public Map<Integer, PdfObject> getParentTree() {
+        return parentTree;
+    }
+
 }
