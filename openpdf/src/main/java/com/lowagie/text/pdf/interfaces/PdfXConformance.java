@@ -49,6 +49,11 @@
 
 package com.lowagie.text.pdf.interfaces;
 
+/**
+ * @deprecated
+ * Use {link {@link PdfConformance instead}}
+ */
+@Deprecated
 public interface PdfXConformance {
     
     /**

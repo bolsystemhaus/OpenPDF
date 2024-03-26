@@ -49,26 +49,17 @@
 
 package com.lowagie.text.pdf.internal;
 
-import java.awt.Color;
 import com.lowagie.text.error_messages.MessageLocalization;
-
-import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.ExtendedColor;
-import com.lowagie.text.pdf.PatternColor;
-import com.lowagie.text.pdf.PdfArray;
-import com.lowagie.text.pdf.PdfDictionary;
-import com.lowagie.text.pdf.PdfGState;
-import com.lowagie.text.pdf.PdfImage;
-import com.lowagie.text.pdf.PdfName;
-import com.lowagie.text.pdf.PdfNumber;
-import com.lowagie.text.pdf.PdfObject;
-import com.lowagie.text.pdf.PdfString;
-import com.lowagie.text.pdf.PdfWriter;
-import com.lowagie.text.pdf.PdfXConformanceException;
-import com.lowagie.text.pdf.ShadingColor;
-import com.lowagie.text.pdf.SpotColor;
+import com.lowagie.text.pdf.*;
 import com.lowagie.text.pdf.interfaces.PdfXConformance;
 
+import java.awt.*;
+
+/**
+ * @deprecated
+ * Use {link {@link PdfConformanceImp instead}}
+ */
+@Deprecated
 public class PdfXConformanceImp implements PdfXConformance {
 
     /** A key for an aspect that can be checked for PDF/X Conformance. */

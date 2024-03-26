@@ -6,9 +6,10 @@ import com.lowagie.text.html.simpleparser.HTMLWorker;
 import com.lowagie.text.html.simpleparser.StyleSheet;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,8 @@ class EmbeddedImageTest
     @Test
     void processHtmlWithEmbeddedImage() throws Exception
     {
-        String html = Files.readAllLines(Paths.get(ClassLoader.getSystemResource("base64-image.html").getPath())).stream()
+        Path path = new File(ClassLoader.getSystemResource("base64-image.html").getFile()).toPath();
+        String html = Files.readAllLines(path).stream()
                 .collect(Collectors.joining());
         final StringReader reader = new StringReader(html);
         final Map<String, Object> interfaceProps = new HashMap<>();
