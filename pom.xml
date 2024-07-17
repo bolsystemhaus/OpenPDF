@@ -45,10 +45,24 @@
         <developerConnection>scm:git:https://github.com/LibrePDF/OpenPDF</developerConnection>
     </scm>
     <!-- Distribution config from http://central.sonatype.org/pages/apache-maven.html#distribution-management-and-authentication -->
+    <!--
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    -->
+
+    <!-- Distribution config for bol Systemhaus -->
+    <distributionManagement>
+        <repository>
+            <id>s3-releases</id>
+            <url>${env.URL_RELEASES}</url>
+        </repository>
+        <snapshotRepository>
+            <id>s3-snapshots</id>
+            <url>${env.URL_SNAPSHOTS}</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -78,6 +92,7 @@
         <!-- dependencies -->
         <bouncycastle.version>1.76</bouncycastle.version>
         <commons-io.version>2.15.0</commons-io.version>
+        <rxjava.version>2.2.0</rxjava.version>
         <dom4j.version>2.1.4</dom4j.version>
         <fop.version>2.9</fop.version>
         <!-- jakarta.servlet-api.version is only used in Tests.
@@ -119,6 +134,11 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jfree</groupId>
@@ -304,7 +324,7 @@
                 <version>${maven-repository-plugin.version}</version>
             </plugin>
             <!-- GPG signing config -->
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${maven-gpg-plugin.version}</version>
@@ -317,12 +337,12 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>${nexus-staging-maven-plugin.version}</version>
-                <extensions>true</extensions>
+                <extensions>false</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>

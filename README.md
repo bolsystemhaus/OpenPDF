@@ -12,6 +12,13 @@ and bugreports to this GitHub repository.
 
 [![Join the chat at https://gitter.im/LibrePDF/OpenPDF](https://badges.gitter.im/LibrePDF/OpenPDF.svg)](https://gitter.im/LibrePDF/OpenPDF)
 
+## Modifications in the fork by bol
+This fork implements some changes to allow the creation of PDF/UA conformant documents. Special attention has been focused on the possibility to use OpenPDF as a drop-in dependency for JasperReports. Although some modifications on the side of Jaspers PDF-Exporter are required if PDF/UA conformant documents are required.
+
+Changes include the restructuring of the PDF conformance setting. Previously all settings were stored in a single property. This has been moved to a set of fitting enums, now also including PDF/UA. Which in turn also allows conforming to multiple standards.
+
+Changes to the XMP-Writer allowed creating the necessary PDF/UA schema and fixing some issues with invalid XML.
+
 ## OpenPDF version 1.3.31 released 2023-11-01 ##
 
 Get version 1.3.31 here - https://github.com/LibrePDF/OpenPDF/releases/tag/1.3.31
