@@ -1008,8 +1008,7 @@ class PdfStamperImp extends PdfWriter {
                             PRIndirectReference parentRef = (PRIndirectReference) wd.get(PdfName.PARENT);
                             PdfReader.killIndirect(wdref);
                             if (parentRef == null) { // reached AcroForm
-                                PdfDictionary acroForm = reader.getCatalog().getAsDict(PdfName.ACROFORM);
-                                PdfArray acroFds = acroForm != null ? (PdfArray)PdfReader.getPdfObject(acroForm.get(PdfName.FIELDS), acroForm) : null;
+                                acroFds = acroForm != null ? (PdfArray)PdfReader.getPdfObject(acroForm.get(PdfName.FIELDS), acroForm) : null;
                                 for (int fr = 0; fr < acroFds.size(); ++fr) {
                                     PdfObject h = acroFds.getPdfObject(fr);
                                     if (h.isIndirect() && ((PRIndirectReference) h).getNumber() == wdref.getNumber()) {
