@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Set;
 import org.xml.sax.SAXException;
 
 import com.lowagie.text.Document;
@@ -185,11 +184,11 @@ class PdfStamperImp extends PdfWriter {
                     acroFields.getXfa().setXfa(this);
             }
             if (sigFlags != 0) {
-                acroForm.put(PdfName.SIGFLAGS, new PdfNumber(sigFlags));
-                markUsed(acroForm);
-                markUsed(catalog);
+                    acroForm.put(PdfName.SIGFLAGS, new PdfNumber(sigFlags));
+                    markUsed(acroForm);
+                    markUsed(catalog);
+                }
             }
-        }
         closed = true;
         addSharedObjectsToBody();
         setOutlines();
@@ -547,6 +546,15 @@ class PdfStamperImp extends PdfWriter {
     }
 
     /**
+     * Removes the encryption from the document (and also inherently the permissions)
+     * @throws DocumentException
+     */
+    public void removeEncryption() throws DocumentException {
+        super.setEncryption(null,null,0,ENCRYPTION_NONE);
+        this.reader.setPermissions(0);
+    }
+
+    /**
      * @param reader
      * @param openFile
      * @throws IOException
@@ -857,11 +865,17 @@ class PdfStamperImp extends PdfWriter {
         if (fieldsAdded && partialFlattening.isEmpty()) {
             partialFlattening.addAll(fields.keySet());
         }
-
+        PdfDictionary acroForm = reader.getCatalog().getAsDict(PdfName.ACROFORM);
+        PdfArray acroFds = null;
+        PdfBoolean needAppearance=null;
+        if (acroForm != null) {
+            acroFds = (PdfArray)PdfReader.getPdfObject(acroForm.get(PdfName.FIELDS), acroForm);
+            needAppearance = (PdfBoolean)acroForm.get(PdfName.NEEDAPPEARANCES);
+        }
         for (Map.Entry<String, Item> entry : fields.entrySet()) {
-            if (!partialFlattening.isEmpty() && !partialFlattening.contains(entry.getKey()))
+            String name = entry.getKey();
+            if (!partialFlattening.isEmpty() && !partialFlattening.contains(name))
                 continue;
-
             Item item = entry.getValue();
             for (int k = 0; k < item.size(); ++k) {
                 PdfDictionary merged = item.getMerged(k);
@@ -871,19 +885,89 @@ class PdfStamperImp extends PdfWriter {
                     flags = ff.intValue();
                 int page = item.getPage(k);
                 if (page == -1)
-                	continue;
+                    continue;
                 PdfDictionary appDic = merged.getAsDict(PdfName.AP);
+                PdfStream appStream=null;
+
+                if (appDic != null) {
+                    appStream = appDic.getAsStream(PdfName.N);
+                }
+
+                //Lonzak (fix) if NeedAppearances flag is true then regenerate appearance before flattening
+                if (needAppearance!=null && needAppearance.booleanValue()) {
+
+                    boolean regenerate = false;
+                    int type = this.acroFields.getFieldType(name);
+
+                    if(type!=AcroFields.FIELD_TYPE_SIGNATURE) {
+                        if(appDic != null && appDic.getDirectObject(PdfName.N) instanceof PdfIndirectReference) {
+                            //since newly added
+                            regenerate=false;
+                        }
+                        else {
+                            regenerate=true;
+                        }
+                    }
+
+                    if(regenerate) {
+                        try {
+                            this.acroFields.regenerateField(name);
+                            appDic = this.acroFields.getFieldItem(name).getMerged(k).getAsDict(PdfName.AP);
+                        }
+                        catch (Exception e) {
+                            //ignore any exception
+                        }
+                    }
+                }
+
+                boolean transformNeeded=false;
+                double rotation = 0;
+                //usually using the MK value will render the correct result because the annotation matrix usually is built according to the MK/R value.
+                //if there is a problem with the rotation a mechanism based on the matrix of the appearance as described in ISO 32000-2:2020 section 12.5.5. should be used
+                if(merged.getAsDict(PdfName.MK) != null && merged.getAsDict(PdfName.MK).get(PdfName.R) != null){
+                    rotation = merged.getAsDict(PdfName.MK).getAsNumber(PdfName.R).floatValue();
+                }
+
+                if (this.acroFields.isGenerateAppearances() && appStream!=null) {
+
+                    PdfArray bboxRaw = appStream.getAsArray(PdfName.BBOX);
+                    PdfArray rectRaw = merged.getAsArray(PdfName.RECT);
+
+                    if (bboxRaw != null && rectRaw != null) {
+                        transformNeeded = true;
+                        PdfRectangle bbox = new PdfRectangle(bboxRaw);
+                        PdfRectangle rect = new PdfRectangle(rectRaw);
+
+                        float rectWidth = rect.width();
+                        float rectHeight = rect.height();
+
+                        //Switches width and height if the rotation is an odd multiple of 90 degrees
+                        if (Math.abs(rotation)>0 && rotation % 180 != 0 && rotation % 90 == 0) {
+                            rectWidth = rect.height();
+                            rectHeight = rect.width();
+                        }
+
+                        float scaleFactorWidth = Math.abs(bbox.width() != 0 ? rectWidth / bbox.width() : 1.0f);
+                        float scaleFactorHeight = Math.abs(bbox.height() != 0 ? rectHeight / bbox.height() : 1.0f);
+
+                        PdfArray array = new PdfArray(new float[]{scaleFactorWidth, 0, 0, scaleFactorHeight, 0, 0});
+                        appStream.put(PdfName.MATRIX, array);
+                        markUsed(appStream);
+                    }
+                }
+
                 if (appDic != null && (flags & PdfFormField.FLAGS_PRINT) != 0 && (flags & PdfFormField.FLAGS_HIDDEN) == 0) {
-                    PdfObject normal = appDic.get(PdfName.N);
+                    PdfObject normalAppearanceObj = appDic.get(PdfName.N);
                     PdfAppearance app = null;
-                    if (normal != null) {
-                        PdfObject objReal = PdfReader.getPdfObject(normal);
-                        if (normal instanceof PdfIndirectReference && !normal.isIndirect())
-                            app = new PdfAppearance((PdfIndirectReference) normal);
+                    PdfObject objReal = PdfReader.getPdfObject(normalAppearanceObj);
+                    if (normalAppearanceObj != null) {
+                        if (normalAppearanceObj instanceof PdfIndirectReference && !normalAppearanceObj.isIndirect())
+                            app = new PdfAppearance((PdfIndirectReference)normalAppearanceObj);
                         else if (objReal instanceof PdfStream) {
                             ((PdfDictionary) objReal).put(PdfName.SUBTYPE, PdfName.FORM);
-                            app = new PdfAppearance((PdfIndirectReference) normal);
-                        } else {
+                            app = new PdfAppearance((PdfIndirectReference)normalAppearanceObj);
+                        }
+                        else {
                             if (objReal != null && objReal.isDictionary()) {
                                 PdfName as = merged.getAsName(PdfName.AS);
                                 if (as != null) {
@@ -1048,6 +1132,11 @@ class PdfStamperImp extends PdfWriter {
                 if ((annoto instanceof PdfIndirectReference) && !annoto.isIndirect())
                     continue;
 
+                //Lonzak Fix: java.lang.ClassCastException: com.lowagie.text.pdf.PdfNull cannot be cast to com.lowagie.text.pdf.PdfDictionary
+                if(!(annoto instanceof PdfDictionary)) {
+                    continue;
+                }
+
                 PdfDictionary annDic = (PdfDictionary)annoto;
                  if (!annDic.get(PdfName.SUBTYPE).equals(PdfName.FREETEXT))
                     continue;
@@ -1074,7 +1163,8 @@ class PdfStamperImp extends PdfWriter {
                     }
                     else
                     {
-                        if (objReal.isDictionary())
+                        //Lonzak: NPE Fix since objReal or obj can be null
+                        if (objReal!=null && objReal.isDictionary())
                         {
                             PdfName as_p = appDic.getAsName(PdfName.AS);
                             if (as_p != null)
@@ -1385,8 +1475,11 @@ class PdfStamperImp extends PdfWriter {
         }
     }
 
-    void addAnnotation(PdfAnnotation annot, int page) {
-        annot.setPage(page);
+    public void addAnnotation(PdfAnnotation annot, int page) {
+        //Bugfix to prevent that for autofill parents the /P page reference is added [^Lonzak]
+        if(annot.isAnnotation()){
+            annot.setPage(page);
+        }
         addAnnotation(annot, reader.getPageN(page));
     }
     

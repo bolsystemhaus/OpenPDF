@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.librepdf</groupId>
         <artifactId>openpdf-parent</artifactId>
-        <version>1.3.32-BOL</version>
+        <version>1.3.34-BOL-SNAPSHOT</version>
     </parent>
 
     <artifactId>openpdf</artifactId>
@@ -70,6 +70,13 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.verapdf</groupId>
+            <artifactId>validation-model</artifactId>
+            <version>1.24.1</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
     </dependencies>
