@@ -71,7 +71,7 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
+        <project.forcedname>OpenPDF</project.forcedname>
         <!-- Maven Plugins versions -->
         <maven-bundle-plugin.version>5.1.9</maven-bundle-plugin.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
@@ -107,7 +107,7 @@
         <junit.version>5.10.1</junit.version>
         <mockito4.version>4.11.0</mockito4.version>
         <mockito5.version>5.2.0</mockito5.version>
-
+        <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
         <checkstyle.version>10.12.6</checkstyle.version>
         <maven-jxr-plugin.version>3.3.1</maven-jxr-plugin.version>
     </properties>
@@ -211,6 +211,14 @@
                         </dependency>
                     </dependencies>
                 </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${cyclonedx-maven-plugin.version}</version>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
             </plugins>
         </pluginManagement>
 
@@ -476,6 +484,43 @@
                                     </compileSourceRoots>
                                     <multiReleaseOutput>true</multiReleaseOutput>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>sBom</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <version>${cyclonedx-maven-plugin.version}</version>
+                        <configuration>
+                            <projectType>application</projectType>
+                            <schemaVersion>1.4</schemaVersion>
+                            <includeBomSerialNumber>true</includeBomSerialNumber>
+                            <includeCompileScope>true</includeCompileScope>
+                            <includeProvidedScope>true</includeProvidedScope>
+                            <includeRuntimeScope>true</includeRuntimeScope>
+                            <includeSystemScope>true</includeSystemScope>
+                            <includeTestScope>false</includeTestScope>
+                            <includeLicenseText>false</includeLicenseText>
+                            <outputReactorProjects>true</outputReactorProjects>
+                            <outputFormat>json</outputFormat>
+                            <outputName>result</outputName>
+                            <outputDirectory>./</outputDirectory>
+                            <verbose>true</verbose>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>packageBom</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>makeAggregateBom</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
