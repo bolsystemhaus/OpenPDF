@@ -3,8 +3,8 @@ name: Deploy to Nexus
 on:
   push:
     branches:
-      - "release/**"
-      - "snapshot/**"
+      - development
+      - production
   workflow_dispatch:
 
 jobs:
@@ -87,6 +87,7 @@ jobs:
       - name: Upload SBOM to DependencyTrack
         if: success()
         run: |
+          [ ! -f result.json ] && echo "No SBOM found, skipping" && exit 0
           curl -sf -X POST "https://dtrack-api.formular-demo.de/api/v1/bom" \
             -H "Content-Type: multipart/form-data" \
             -H "X-Api-Key: ${{ secrets.DTRACK_TOKEN }}" \
