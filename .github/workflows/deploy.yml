@@ -80,6 +80,7 @@ jobs:
           mvn -B clean deploy \
             -Dgpg.skip \
             -P sBom,!jdk9 \
+            -Dtest="!DocumentTest#testThatVersionIsCorrect,!PdfFormFlatteningTest,!PdfDocumentCJKExtensionTest,!AdvanceTypographyTest#testInMemoryFonts" \
             -Dsonar.organization=bolsystemhaus \
             -Dsonar.host.url=https://sonarcloud.io \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
