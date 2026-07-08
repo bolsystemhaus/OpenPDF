@@ -1,0 +1,97 @@
+name: Deploy to Nexus
+
+on:
+  push:
+    branches:
+      - "release/**"
+      - "snapshot/**"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarCloud needs full history
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "17"
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <settings>
+            <servers>
+              <server>
+                <id>s3-releases</id>
+                <username>${{ secrets.NEXUS_USERNAME }}</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>s3-snapshots</id>
+                <username>${{ secrets.NEXUS_USERNAME }}</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>maven-s3</id>
+                <username>${{ secrets.NEXUS_USERNAME }}</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+            </servers>
+            <mirrors>
+              <mirror>
+                <id>maven-s3</id>
+                <name>maven-s3</name>
+                <url>https://nexus.formular-demo.de/repository/maven-s3/</url>
+                <mirrorOf>*,!central,!atlassian</mirrorOf>
+              </mirror>
+            </mirrors>
+            <profiles>
+              <profile>
+                <id>nexus</id>
+                <activation>
+                  <activeByDefault>true</activeByDefault>
+                </activation>
+                <properties>
+                  <altSnapshotDeploymentRepository>s3-snapshots::https://nexus.formular-demo.de/repository/s3-snapshots/</altSnapshotDeploymentRepository>
+                  <altReleaseDeploymentRepository>s3-releases::https://nexus.formular-demo.de/repository/s3-releases/</altReleaseDeploymentRepository>
+                </properties>
+              </profile>
+            </profiles>
+          </settings>
+          EOF
+
+      - name: Build, Analyze & Deploy
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B clean deploy \
+            -Dgpg.skip \
+            -P sBom,!jdk9 \
+            -Dsonar.organization=bolsystemhaus \
+            -Dsonar.host.url=https://sonarcloud.io \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upload SBOM to DependencyTrack
+        if: success()
+        run: |
+          curl -sf -X POST "https://dtrack-api.formular-demo.de/api/v1/bom" \
+            -H "Content-Type: multipart/form-data" \
+            -H "X-Api-Key: ${{ secrets.DTRACK_TOKEN }}" \
+            -F "autoCreate=true" \
+            -F "projectName=OpenPDF" \
+            -F "projectVersion=${{ steps.version.outputs.version }}" \
+            -F "isLatest=true" \
+            -F "bom=@result.json"
