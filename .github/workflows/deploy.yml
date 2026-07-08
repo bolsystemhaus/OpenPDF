@@ -81,6 +81,7 @@ jobs:
             -Dgpg.skip \
             -P sBom,!jdk9 \
             -Dtest="!DocumentTest#testThatVersionIsCorrect,!PdfFormFlatteningTest,!PdfDocumentCJKExtensionTest,!AdvanceTypographyTest#testInMemoryFonts" \
+            -Dsurefire.failIfNoSpecifiedTests=false \
             -Dsonar.organization=bolsystemhaus \
             -Dsonar.host.url=https://sonarcloud.io \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
