@@ -13,8 +13,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # SonarCloud needs full history
 
       - uses: actions/setup-java@v4
         with:
@@ -73,18 +71,13 @@ jobs:
           </settings>
           EOF
 
-      - name: Build, Analyze & Deploy
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Build & Deploy
         run: |
           mvn -B clean deploy \
             -Dgpg.skip \
             -P sBom,!jdk9 \
             -Dtest="!DocumentTest#testThatVersionIsCorrect,!PdfFormFlatteningTest,!PdfDocumentCJKExtensionTest,!AdvanceTypographyTest#testInMemoryFonts" \
-            -Dsurefire.failIfNoSpecifiedTests=false \
-            -Dsonar.organization=bolsystemhaus \
-            -Dsonar.host.url=https://sonarcloud.io \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+            -Dsurefire.failIfNoSpecifiedTests=false
 
       - name: Extract version
         id: version
