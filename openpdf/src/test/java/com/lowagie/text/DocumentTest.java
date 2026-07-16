@@ -14,7 +14,7 @@ class DocumentTest {
         // Then
         assertThat(versionInCode)
                 .as("Version number in code %s is not correct.", versionInCode)
-                .matches("^OpenPDF \\d+\\.\\d+\\.\\d+(-SNAPSHOT)?$");
+                .matches("^OpenPDF \\d+\\.\\d+\\.\\d+-BOL(-SNAPSHOT)?$");
     }
 
 }

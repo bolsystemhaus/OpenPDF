@@ -3,6 +3,7 @@ package com.lowagie.text.pdf;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.lowagie.text.Chunk;
@@ -10,6 +11,7 @@ import com.lowagie.text.Document;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 
+@Disabled("Requires some japanese font to be present, probably not relevant for us")
 class PdfDocumentCJKExtensionTest {
 	@Test
 	void generateDocumentsWithCJKExtension() throws IOException {
