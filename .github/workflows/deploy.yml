@@ -76,7 +76,7 @@ jobs:
           mvn -B clean deploy \
             -Dgpg.skip \
             -P sBom,!jdk9 \
-            -Dtest="!DocumentTest#testThatVersionIsCorrect,!PdfFormFlatteningTest,!PdfDocumentCJKExtensionTest,!AdvanceTypographyTest#testInMemoryFonts" \
+            -Dtest="!PdfFormFlatteningTest,!PdfDocumentCJKExtensionTest,!AdvanceTypographyTest#testInMemoryFonts" \
             -Dsurefire.failIfNoSpecifiedTests=false
 
       - name: Extract version
