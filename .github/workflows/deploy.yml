@@ -96,4 +96,5 @@ jobs:
             -F "projectName=OpenPDF" \
             -F "projectVersion=${{ steps.version.outputs.version }}" \
             -F "isLatest=true" \
+            -F "parentName=OpenPDF" \
             -F "bom=@result.json"
